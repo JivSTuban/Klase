@@ -1,7 +1,6 @@
 from django import forms
 from .models import StudentDiscussion, InstructorDiscussion
 
-
 class StudentDiscussionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(StudentDiscussionForm, self).__init__(*args, **kwargs)

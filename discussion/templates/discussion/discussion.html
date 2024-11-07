@@ -1,9 +1,10 @@
 {% extends 'index.html' %}
-{% load static %}
-{% block title %}Discussion | {{ course.name }} {% endblock title %}
+
+{% block title %}Discussion | {{ course.title }} {% endblock title %}
+
 {% block profile %}
-{% if instructor  %} {% url 'profile' instructor.instructor_id %}
-{% else %} {% url 'profile' student.student_id %}
+{% if instructor  %} {% url 'profile' instructor.email %}
+{% else %} {% url 'profile' student.email %}
 {% endif %}
 {% endblock %}
 {% block user %}
@@ -23,44 +24,41 @@
 <div class="container" id="con">
    <!-- navigation links -->
    <div class="container shadow-sm">
-      <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+      <nav aria-label="breadcrumb">
          <ol class="breadcrumb p-3">
             {% if instructor %}
             <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)" href="{% url 'instructorCourses' %}">My
                   Courses</a>
             </li>
             <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)"
-                  href="{% url 'instructor' course.code %}">{{ course.name }}</a></li>
+                  href="{% url 'instructor' course.code %}">{{ course.title }}</a></li>
             {% else %}
             <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)" href="{% url 'myCourses' %}">My
                   Courses</a>
             </li>
             <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)"
-                  href="{% url 'course' course.code %}">{{ course.name }}</a></li>
+                  href="{% url 'course' course.code %}">{{ course.title }}</a></li>
             {% endif %}
-            <li class="breadcrumb-item active animate__animated animate__backInRight" aria-current="page">Discussion</li>
+            <li class="breadcrumb-item active" aria-current="page">Discussion</li>
          </ol>
       </nav>
    </div>
    <!-- navigation links end -->
-
    <div class="container shadow p-3 rounded">
       <div class="d-flex flex-column m-3">
          {% if instructor %}
-         <form action="{% url 'send_fac' course.code instructor.instructor_id %}" method="POST">
+         <form action="{% url 'send_fac' course.code instructor.email %}" method="POST">
             {% csrf_token %}
             <div class="input-group mb-3 p-3">
-               {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" required> {% endcomment %}
-               {{ form.content }}
+               <input type="text" class="form-control" placeholder="Write message..." name="content" required>
                <button class="btn btn-primary mx-2 rounded" type="submit">Send</button>
             </div>
          </form>
          {% else %}
-         <form action="{% url 'send' course.code student.student_id %}" method="POST">
+         <form action="{% url 'send' course.code student.email %}" method="POST">
             {% csrf_token %}
             <div class="input-group mb-3 p-3">
-               {% comment %} <input type="text" class="form-control" placeholder="Write message..." name="content" required> {% endcomment %}
-               {{ form.content }}
+               <input type="text" class="form-control" placeholder="Write message..." name="content" required>
                <button class="btn btn-primary mx-2 rounded" type="submit" id="button">Send</button>
             </div>
          </form>
@@ -74,14 +72,13 @@
                <img class="align-self-baseline rounded-circle" src="/media/{{ discussion.author.photo}}" alt="image"
                   style="height: 4rem;width:4rem;">
                <div class="mx-2">
-                  {% if discussion.author.role == "Instructor" %}
-                  <div class="d-inline-flex flex-wrap">
-                     <span class="fw-bold">{{discussion.sent_by}}</span><span class="fw-bold rounded text-success bg-success bg-opacity-10 mx-2 p-1" style="font-size:11px">Course teacher</span>
-                  </div>
+                  {% if discussion.author.role == "instructor" %}
+                  <h6 class="d-inline bg-success text-light rounded px-2">{{discussion.sent_by}}</h6>
                   {% else %}
-                  <span class="fw-bold">{{discussion.sent_by}}</span>
+                  
+                  <h6 class="d-inline fw-bold">{{discussion.sent_by}}</h6>
                   {% endif %}
-                  <span class="text-muted mx-2" style="font-size:smaller">{{ discussion.time }}</span>
+                  <span class="text-muted mx-2">{{ discussion.sent_at }}</span>
                   <p class="text-wrap text-break my-2 px-2">{{discussion.content}}
                   </p>
                </div>
@@ -93,11 +90,12 @@
          {% endfor %}
          {% else %}
          <div class="text-center fs-6 text-muted">
-            Be the first to start the discussion
+            No one has started a discussion yet
          </div>
          {% endif %}
+
       </div>
    </div>
 </div>
-{% endblock %}
 
+{% endblock %}

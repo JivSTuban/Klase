@@ -1,7 +1,7 @@
 import datetime
 from django.shortcuts import redirect, render
 from django.contrib import messages
-from .models import Student, Course, Announcement, Assignment, Submission, Material, Instructor, Department
+from .models import Student, Course, Announcement, Assignment, Submission, Material, Instructor
 from django.views.generic import TemplateView
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
@@ -9,9 +9,12 @@ from .forms import AnnouncementForm, AssignmentForm, CourseForm, MaterialForm, R
 from django.contrib.auth.hashers import make_password, check_password
 from django import forms
 from django.core import validators
-
+import logging
 
 from django import forms
+
+
+logger = logging.getLogger(__name__)
 
 
 class LoginForm(forms.Form):
@@ -20,18 +23,30 @@ class LoginForm(forms.Form):
 
 def is_student_authorised(request, code):
     course = Course.objects.get(code=code)
-    if request.session.get('student_id') and course in Student.objects.get(student_id=request.session['student_id']).course.all():
+    if request.session.get('student_email') and course in Student.objects.get(email=request.session['student_email']).course.all():
         return True
     else:
         return False
-
 
 def is_instructor_authorised(request, code):
-    if request.session.get('instructor_id') and code in Course.objects.filter(instructor_id=request.session['instructor_id']).values_list('code', flat=True):
+    if request.session.get('instructor_email') and code in Course.objects.filter(Instructor__email=request.session['instructor_email']).values_list('code', flat=True):
         return True
     else:
         return False
 
+def deleteCourse(request, code):
+    if request.session.get('instructor_email'):
+        try:
+            instructor = Instructor.objects.get(email=request.session['instructor_email'])
+            course = Course.objects.get(code=code, Instructor=instructor)
+            course.delete()
+            messages.success(request, 'Course deleted successfully.')
+            return redirect('instructorCourses')
+        except Course.DoesNotExist:
+            messages.error(request, 'Course does not exist or you do not have permission to delete this course.')
+            return redirect('instructorCourses')
+    else:
+        return redirect('std_login')
 
 def landing(request):
     return render(request, 'landing.html')
@@ -47,8 +62,8 @@ def register(request):
             return redirect('std_login')  # Redirect to login page after successful registration
     else:
         form = RegisterForm()
-    departments = Department.objects.all()
-    return render(request, 'registration_page.html', {'form': form, 'departments': departments})
+
+    return render(request, 'registration_page.html', {'form': form})
 
 # Custom Login page for both student and instructor
 def std_login(request):
@@ -66,6 +81,7 @@ def std_login(request):
 
             if student and (check_password(password, student.password) or password == student.password):
                 request.session['student_email'] = email
+                request.session['student_id'] = str(student.student_id)  # Convert UUID to string
                 return redirect('myCourses')
             elif instructor and (check_password(password, instructor.password) or password == instructor.password):
                 request.session['instructor_email'] = email
@@ -98,11 +114,11 @@ def myCourses(request):
     try:
         if request.session.get('student_email'):
             student = Student.objects.get(email=request.session['student_email'])
-            print(f"Student Email: {student.email}")
+            
             courses = student.course.all()
-            print(f"Courses: {courses}")
+     
             instructor = student.course.all().values_list('Instructor_id', flat=True)
-            print(f"Instructors: {instructor}")
+        
 
             context = {
                 'courses': courses,
@@ -157,13 +173,19 @@ def instructorCourses(request):
 def course_page(request, code):
     try:
         print(f"Session Data: {request.session.items()}")
+     
         course = Course.objects.get(code=code)
+        print(f"course: {course}")
         if is_student_authorised(request, code):
             try:
                 announcements = Announcement.objects.filter(course_code=course)
+                print(f"Announcements: {announcements}")
                 assignments = Assignment.objects.filter(course_code=course.code)
+                print(f"Assignments: {assignments}")
                 materials = Material.objects.filter(course_code=course.code)
-            except:
+                print(f"Materials: {materials}")
+            except Exception as e:
+                print(f"Error fetching course data: {e}")
                 announcements = None
                 assignments = None
                 materials = None
@@ -171,17 +193,19 @@ def course_page(request, code):
             context = {
                 'course': course,
                 'announcements': announcements,
-                'assignments': assignments[:3],
+                'assignments': assignments,
                 'materials': materials,
                 'student': Student.objects.get(email=request.session['student_email'])
             }
-
             return render(request, 'main/course.html', context)
         else:
             return redirect('std_login')
+    except Course.DoesNotExist:
+        print("Course does not exist.")
+        return redirect('std_login')
     except Exception as e:
-        print(f"Error: {e}")
-        return render(request, 'error.html')
+        print(f"Unexpected error: {e}")
+        return redirect('std_login')
     
 # Particular course page (instructor view)
 def course_page_instructor(request, code):
@@ -217,20 +241,23 @@ def error(request):
 # Display user profile(student & instructor)
 def profile(request, email):
     try:
-        if request.session['student_email'] == email:
+        if 'student_email' in request.session and request.session['student_email'] == email:
             student = Student.objects.get(email=email)
             return render(request, 'main/profile.html', {'student': student})
+        elif 'instructor_email' in request.session and request.session['instructor_email'] == email:
+            instructor = Instructor.objects.get(email=email)
+            return render(request, 'main/instructor_profile.html', {'instructor': instructor})
         else:
             return redirect('std_login')
-    except:
-        try:
-            if request.session['instructor_email'] == email:
-                instructor = Instructor.objects.get(email=email)
-                return render(request, 'main/instructor_profile.html', {'instructor': instructor})
-            else:
-                return redirect('std_login')
-        except:
-            return render(request, 'error.html')
+    except Student.DoesNotExist:
+        logger.error(f"Student with email {email} does not exist.")
+        return render(request, 'error.html', {'message': 'Student not found.'})
+    except Instructor.DoesNotExist:
+        logger.error(f"Instructor with email {email} does not exist.")
+        return render(request, 'error.html', {'message': 'Instructor not found.'})
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return render(request, 'error.html', {'message': 'An unexpected error occurred.'})
 
 
 def addAnnouncement(request, code):
@@ -421,25 +448,36 @@ def addSubmission(request, code, id):
 
 
 def viewSubmission(request, code, id):
-    course = Course.objects.get(code=code)
+    try:
+        course = Course.objects.get(code=code)
+    except Course.DoesNotExist:
+        messages.error(request, 'Course does not exist.')
+        return redirect('instructorCourses')
+
     if is_instructor_authorised(request, code):
         try:
             assignment = Assignment.objects.get(course_code_id=code, id=id)
-            submissions = Submission.objects.filter(
-                assignment_id=assignment.id)
+            submissions = Submission.objects.filter(assignment_id=assignment.id)
 
             context = {
                 'course': course,
                 'submissions': submissions,
                 'assignment': assignment,
-                'totalStudents': len(Student.objects.filter(course=course)),
-                'instructor': Instructor.objects.get(instructor_id=request.session['instructor_id']),
-                'courses': Course.objects.filter(instructor_id=request.session['instructor_id'])
+                'totalStudents': Student.objects.filter(course=course).count(),
+                'instructor': Instructor.objects.get(email=request.session['instructor_email']),
+                'courses': Course.objects.filter(Instructor__email=request.session['instructor_email'])
             }
 
             return render(request, 'main/assignment-view.html', context)
 
-        except:
+        except Assignment.DoesNotExist:
+            messages.error(request, 'Assignment does not exist.')
+            return redirect('/instructor/' + str(code))
+        except Instructor.DoesNotExist:
+            messages.error(request, 'Instructor does not exist.')
+            return redirect('std_login')
+        except Exception as e:
+            messages.error(request, f'Unexpected error: {e}')
             return redirect('/instructor/' + str(code))
     else:
         return redirect('std_login')
@@ -448,40 +486,49 @@ def viewSubmission(request, code, id):
 def gradeSubmission(request, code, id, sub_id):
     try:
         course = Course.objects.get(code=code)
-        if is_instructor_authorised(request, code):
+    except Course.DoesNotExist:
+        messages.error(request, 'Course does not exist.')
+        return redirect('instructorCourses')
+
+    if is_instructor_authorised(request, code):
+        try:
+            assignment = Assignment.objects.get(course_code_id=code, id=id)
+            submission = Submission.objects.get(assignment_id=assignment.id, id=sub_id)
+
             if request.method == 'POST':
-                assignment = Assignment.objects.get(course_code_id=code, id=id)
-                submissions = Submission.objects.filter(
-                    assignment_id=assignment.id)
-                submission = Submission.objects.get(
-                    assignment_id=id, id=sub_id)
                 submission.marks = request.POST['marks']
-                if request.POST['marks'] == 0:
+                if request.POST['marks'] == '0':
                     submission.marks = 0
                 submission.save()
                 return HttpResponseRedirect(request.path_info)
             else:
-                assignment = Assignment.objects.get(course_code_id=code, id=id)
-                submissions = Submission.objects.filter(
-                    assignment_id=assignment.id)
-                submission = Submission.objects.get(
-                    assignment_id=id, id=sub_id)
+                submissions = Submission.objects.filter(assignment_id=assignment.id)
 
                 context = {
                     'course': course,
                     'submissions': submissions,
                     'assignment': assignment,
-                    'totalStudents': len(Student.objects.filter(course=course)),
+                    'totalStudents': Student.objects.filter(course=course).count(),
                     'instructor': Instructor.objects.get(instructor_id=request.session['instructor_id']),
-                    'courses': Course.objects.filter(instructor_id=request.session['instructor_id'])
+                    'courses': Course.objects.filter(Instructor__instructor_id=request.session['instructor_id'])
                 }
 
                 return render(request, 'main/assignment-view.html', context)
 
-        else:
+        except Assignment.DoesNotExist:
+            messages.error(request, 'Assignment does not exist.')
+            return redirect('/instructor/' + str(code))
+        except Submission.DoesNotExist:
+            messages.error(request, 'Submission does not exist.')
+            return redirect('/instructor/' + str(code))
+        except Instructor.DoesNotExist:
+            messages.error(request, 'Instructor does not exist.')
             return redirect('std_login')
-    except:
-        return redirect('/error/')
+        except Exception as e:
+            messages.error(request, f'Unexpected error: {e}')
+            return redirect('/error/')
+    else:
+        return redirect('std_login')
 
 def addCourse(request):
     if request.session.get('instructor_email'):
@@ -534,7 +581,51 @@ def deleteCourseMaterial(request, code, id):
         return redirect('/instructor/' + str(code))
     else:
         return redirect('std_login')
+    
+def edit_course(request, code):
+    if request.session.get('instructor_email'):
+        try:
+            course = Course.objects.get(code=code, Instructor__email=request.session['instructor_email'])
+        except Course.DoesNotExist:
+            messages.error(request, 'Course does not exist or you do not have permission to edit this course.')
+            return redirect('instructorCourses')
 
+        if request.method == 'POST':
+            form = CourseForm(request.POST, instance=course)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Course updated successfully.')
+                return redirect('instructorCourses')
+            else:
+                messages.error(request, 'Please correct the errors below.')
+        else:
+            form = CourseForm(instance=course)
+
+        context = {
+            'form': form,
+            'instructor': Instructor.objects.get(email=request.session['instructor_email'])
+        }
+        return render(request, 'main/editCourse.html', context)
+    else:
+        return redirect('std_login')
+
+def withdraw_course(request, code):
+    if request.session.get('student_email'):
+        try:
+            student = Student.objects.get(email=request.session['student_email'])
+            course = Course.objects.get(code=code)
+            student.course.remove(course)
+            student.save()
+            messages.success(request, 'You have successfully withdrawn from the course.')
+            return redirect('myCourses')
+        except Course.DoesNotExist:
+            messages.error(request, 'Course does not exist.')
+            return redirect('myCourses')
+        except Student.DoesNotExist:
+            messages.error(request, 'Student does not exist.')
+            return redirect('std_login')
+    else:
+        return redirect('std_login')
 
 def courses(request):
     if request.session.get('student_email') or request.session.get('instructor_email'):
@@ -566,27 +657,6 @@ def courses(request):
         return redirect('std_login')
 
 
-def departments(request):
-    if request.session.get('student_email') or request.session.get('instructor_email'):
-        departments = Department.objects.all()
-        student = None
-        instructor = None
-
-        if request.session.get('student_email'):
-            student = Student.objects.get(email=request.session['student_email'])
-        if request.session.get('instructor_email'):
-            instructor = Instructor.objects.get(email=request.session['instructor_email'])
-
-        context = {
-            'instructor': instructor,
-            'student': student,
-            'deps': departments
-        }
-
-        return render(request, 'main/departments.html', context)
-    else:
-        return redirect('std_login')
-
 
 def access(request, code):
     if request.session.get('student_email'):
@@ -615,7 +685,7 @@ def search(request):
             q = request.GET['q']
             courses = Course.objects.filter(
                 Q(code__icontains=q) | 
-                Q(name__icontains=q) | 
+                Q(title__icontains=q) | 
                 Q(Instructor__name__icontains=q)  # Correct field name
             )
 
@@ -644,8 +714,8 @@ def search(request):
         return redirect('std_login')
 
 def changePasswordPrompt(request):
-    if request.session.get('student_id'):
-        student = Student.objects.get(student_id=request.session['student_id'])
+    if request.session.get('student_email'):
+        student = Student.objects.get(email=request.session['student_email'])
         return render(request, 'main/changePassword.html', {'student': student})
     elif request.session.get('instructor_id'):
         instructor = Instructor.objects.get(instructor_id=request.session['instructor_id'])
@@ -655,11 +725,11 @@ def changePasswordPrompt(request):
 
 
 def changePhotoPrompt(request):
-    if request.session.get('student_id'):
-        student = Student.objects.get(student_id=request.session['student_id'])
+    if request.session.get('student_email'):
+        student = Student.objects.get(email=request.session['student_email'])
         return render(request, 'main/changePhoto.html', {'student': student})
-    elif request.session.get('instructor_id'):
-        instructor = Instructor.objects.get(instructor_id=request.session['instructor_id'])
+    elif request.session.get('instructor_email'):
+        instructor = Instructor.objects.get(email=request.session['instructor_email'])
         return render(request, 'main/changePhotoInstructor.html', {'instructor': instructor})
     else:
         return redirect('std_login')

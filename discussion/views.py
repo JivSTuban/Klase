@@ -1,10 +1,9 @@
+import datetime
 from django.shortcuts import redirect, render
 from discussion.models import InstructorDiscussion, StudentDiscussion
 from main.models import Student, Instructor, Course
 from main.views import is_instructor_authorised, is_student_authorised
 from itertools import chain
-from .forms import InstructorDiscussionForm, StudentDiscussionForm
-
 
 # Create your views here.
 
@@ -26,7 +25,6 @@ def context_list(course):
             else:
                 dis.author = Instructor.objects.get(instructor_id=dis.sent_by_id)
     except:
-
         discussions = []
 
     return discussions
@@ -35,72 +33,65 @@ def context_list(course):
 def discussion(request, code):
     if is_student_authorised(request, code):
         course = Course.objects.get(code=code)
-        student = Student.objects.get(student_id=request.session['student_id'])
+        student = Student.objects.get(email=request.session['student_email'])
         discussions = context_list(course)
-        form = StudentDiscussionForm()
         context = {
             'course': course,
             'student': student,
             'discussions': discussions,
-            'form': form,
         }
         return render(request, 'discussion/discussion.html', context)
 
     elif is_instructor_authorised(request, code):
         course = Course.objects.get(code=code)
-        instructor = Instructor.objects.get(instructor_id=request.session['instructor_id'])
+        instructor = Instructor.objects.get(email=request.session['instructor_email'])
         discussions = context_list(course)
-        form = instructorDiscussionForm()
         context = {
             'course': course,
             'instructor': instructor,
             'discussions': discussions,
-            'form': form,
         }
         return render(request, 'discussion/discussion.html', context)
     else:
         return redirect('std_login')
 
 
-def send(request, code, std_id):
+def send(request, code, email):
     if is_student_authorised(request, code):
         if request.method == 'POST':
-            form = StudentDiscussionForm(request.POST)
-            if form.is_valid():
-                content = form.cleaned_data['content']
-                course = Course.objects.get(code=code)
-                try:
-                    student = Student.objects.get(student_id=std_id)
-                except:
-                    return redirect('discussion', code=code)
+            content = request.POST['content']
+            course = Course.objects.get(code=code)
+            student = Student.objects.get(email=email)
+            try:
                 StudentDiscussion.objects.create(
-                    content=content, course=course, sent_by=student)
+                    content=content,
+                    course=course,
+                    sent_by=student,
+                    sent_at=datetime.datetime.now()
+                )
                 return redirect('discussion', code=code)
-            else:
+            except:
                 return redirect('discussion', code=code)
-        else:
-            return redirect('discussion', code=code)
+
     else:
-        return render(request, 'std_login.html')
+        return render(request, 'error.html')
 
 
-def send_instructor(request, code, id):
+def send_fac(request, code, fac_id):
     if is_instructor_authorised(request, code):
         if request.method == 'POST':
-            form = InstructorDiscussionForm(request.POST)
-            if form.is_valid():
-                content = form.cleaned_data['content']
-                course = Course.objects.get(code=code)
-                try:
-                    instructor = Instructor.objects.get(instructor_id=id)
-                except:
-                    return redirect('discussion', code=code)
+            content = request.POST['content']
+            course = Course.objects.get(code=code)
+            try:
+                instructor = Instructor.objects.get(faculty_id=fac_id)
                 InstructorDiscussion.objects.create(
-                    content=content, course=course, sent_by=instructor)
+                    content=content,
+                    course=course,
+                    sent_by=instructor,
+                    sent_at=datetime.datetime.now()
+                )
                 return redirect('discussion', code=code)
-            else:
+            except:
                 return redirect('discussion', code=code)
-        else:
-            return redirect('discussion', code=code)
     else:
-        return render(request, 'std_login.html')
+        return render(request, 'error.html')

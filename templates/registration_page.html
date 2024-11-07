@@ -166,22 +166,6 @@
                     required
                 >
             </div>
-            <div class="mb-3">
-                <label for="department" class="form-label">Department</label>
-                <select 
-                    class="form-control" 
-                    id="department" 
-                    name="department" 
-                    required
-                >
-                    <option value="">Select Department</option>
-                    {% for department in departments %}
-                        <option value="{{ department.department_id }}" {% if form.department.value == department.department_id %}selected{% endif %}>
-                            {{ department.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
 
             <button type="submit" class="btn btn-signup">Sign Up</button>
 

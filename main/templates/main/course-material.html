@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% block title %} {{ course.name }} | Klase {% endblock title %}
+{% block title %} {{ course.title }} | Klase {% endblock title %}
 {% block profile %}
 {% url 'profile' instructor.email %}
 {% endblock %}
@@ -21,7 +21,7 @@
             courses</a>
          </li>
          <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)"
-            href="{% url 'instructor' course.code %}">{{ course.name }}</a></li>
+            href="{% url 'instructor' course.code %}">{{ course.title }}</a></li>
          <li class="breadcrumb-item active animate__animated animate__backInRight" aria-current="page">Course material</li>
       </ol>
    </nav>

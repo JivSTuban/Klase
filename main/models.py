@@ -15,8 +15,6 @@ class Student(models.Model):
         'Course', related_name='students', blank=True)
     photo = models.ImageField(upload_to='profile_pics', blank=True,
                               null=False, default='profile_pics/default_student.png')
-    department = models.ForeignKey(
-        'Department', on_delete=models.CASCADE, null=False, blank=False, related_name='students')
 
     def delete(self, *args, **kwargs):
         if self.photo != 'profile_pics/default_student.png':
@@ -35,8 +33,6 @@ class Instructor(models.Model):
     name = models.CharField(max_length=100, null=False)
     email = models.EmailField(max_length=100, null=True, blank=True, unique=True)
     password = models.CharField(max_length=255, null=False)
-    department = models.ForeignKey(
-        'Department', on_delete=models.CASCADE, null=False, related_name='instructor')
     role = models.CharField(
         default="Instructor", max_length=100, null=False, blank=True)
     photo = models.ImageField(upload_to='profile_pics', blank=True,
@@ -54,43 +50,20 @@ class Instructor(models.Model):
         return self.name
 
 
-class Department(models.Model):
-    department_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, null=False)
-    description = models.TextField(null=True, blank=True)
-
-    class Meta:
-        verbose_name_plural = 'Departments'
-
-    def __str__(self):
-        return self.name
-
-    def student_count(self):
-        return self.students.count()
-
-    def instructor_count(self):
-        return self.instructor.count()
-
-    def course_count(self):
-        return self.courses.count()
-
-
 class Course(models.Model):
     code = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=255, null=False, unique=True)
-    department = models.ForeignKey(
-        Department, on_delete=models.CASCADE, null=False, related_name='courses')
+    title = models.CharField(max_length=255, null=False, unique=True)
+    description = models.TextField(null=True, blank=True)
     Instructor = models.ForeignKey(
         Instructor, on_delete=models.SET_NULL, null=True, blank=True)
     studentKey = models.IntegerField(null=False, unique=True)
     InstructorKey = models.IntegerField(null=False, unique=True)
 
     class Meta:
-        unique_together = ('code', 'department', 'name')
         verbose_name_plural = "Courses"
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class Announcement(models.Model):
@@ -197,7 +170,7 @@ class Material(models.Model):
         ordering = ['-datetime']
 
     def __str__(self):
-        return self.title
+        return self.description[:50]  # Return the first 50 characters of the description
 
     def delete(self, *args, **kwargs):
         self.file.delete()

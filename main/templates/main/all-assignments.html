@@ -1,6 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
-{% block title %} Assignments | {{ course.name }} | Klase {% endblock title %}
+{% block title %} Assignments | {{ course.title }} | Klase {% endblock title %}
 {% block profile %}
 {% url 'profile' instructor.email %}
 {% endblock %}
@@ -24,7 +24,7 @@
                Courses</a>
             </li>
             <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)"
-               href="{% url 'instructor' course.code %}">{{ course.name }}</a></li>
+               href="{% url 'instructor' course.code %}">{{ course.title }}</a></li>
             <li class="breadcrumb-item active animate__animated animate__backInRight" aria-current="page">Assignment</li>
          </ol>
       </nav>
@@ -33,7 +33,7 @@
    <div class="container d-flex flex-wrap flex-column">
       <!-- course name starts -->
       <div class="course-section p-3 m-3 shadow-sm d-flex justify-content-center">
-         <div class="fw-bold fs-5 course_name">{{course.department}}-{{course.code}} : {{course.name}}</div>
+         <div class="fw-bold fs-5 course_name">{{course.title}}-{{course.code}}</div>
       </div>
       <!-- course name ends -->
       <!-- assignment section starts -->

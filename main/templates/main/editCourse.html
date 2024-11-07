@@ -12,15 +12,15 @@
 {% block allCourses %}
 {% url 'courses' %}
 {% endblock %}
-{% block title %}Add Course | Klase {% endblock title %}
+{% block title %}Edit Course | Klase {% endblock title %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Add Course</h2>
+    <h2>Edit Course</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Add</button>
+        <button type="submit" class="btn btn-primary">Save</button>
         <a href="{% url 'instructorCourses' %}" class="btn btn-danger">Cancel</a>
     </form>
 </div>

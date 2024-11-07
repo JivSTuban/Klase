@@ -31,7 +31,7 @@
                      <button type="submit" class="btn btn-primary">Submit</button>
                   </div>
                   <div class="text-center mt-3">
-                     <a href="{% url 'profile' student.student_id %}">Cancel</a>
+                     <a href="{% url 'profile' student.email %}">Cancel</a>
                   </div>
                </form>
                <p class="text-center mt-3"> <span class="text-muted">logged in as</span>  {{student.name}}</p>

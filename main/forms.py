@@ -5,8 +5,33 @@ from .models import Announcement, Assignment, Course, Material, Student
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['code', 'name', 'department', 'studentKey', 'InstructorKey']
-        
+        fields = ['code', 'description', 'title', 'studentKey', 'InstructorKey']
+        widgets = {
+            'code': forms.NumberInput(attrs={'class': 'form-control', 'disabled': 'disabled'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'studentKey': forms.NumberInput(attrs={'class': 'form-control'}),
+            'InstructorKey': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_title(self):
+        title = self.cleaned_data.get('title')
+        if Course.objects.filter(title=title).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Course with this Title already exists.")
+        return title
+
+    def clean_studentKey(self):
+        studentKey = self.cleaned_data.get('studentKey')
+        if Course.objects.filter(studentKey=studentKey).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Course with this StudentKey already exists.")
+        return studentKey
+
+    def clean_InstructorKey(self):
+        InstructorKey = self.cleaned_data.get('InstructorKey')
+        if Course.objects.filter(InstructorKey=InstructorKey).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Course with this InstructorKey already exists.")
+        return InstructorKey
+
 class AnnouncementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AnnouncementForm, self).__init__(*args, **kwargs)
@@ -62,7 +87,7 @@ class RegisterForm(forms.ModelForm):
 
     class Meta:
         model = Student
-        fields = ['name', 'email', 'password', 'department']
+        fields = ['name', 'email', 'password']
         widgets = {
             'password': forms.PasswordInput(),
         }
