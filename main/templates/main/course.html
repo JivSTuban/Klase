@@ -13,135 +13,260 @@
 {% block allCourses %}
 {% url 'courses' %}
 {% endblock allCourses %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    color: #37352f;
+  }
+  
+  .page-header {
+    padding: 20px 0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .course-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  
+  .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .breadcrumb-item a {
+    color: #37352f;
+    text-decoration: none;
+  }
+  
+  .breadcrumb-item.active {
+    color: #6b6b6b;
+  }
+  
+  .section-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .section-card:hover {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  }
+  
+  .section-header {
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+  
+  .section-icon {
+    margin-right: 10px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .section-content {
+    padding: 15px;
+  }
+  
+  .dropdown-toggle::after {
+    display: none;
+  }
+  
+  .dropdown-menu {
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .dropdown-item {
+    padding: 8px 15px;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f7f6f3;
+  }
+  
+  .announcement-item, .assignment-item, .material-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .announcement-item:last-child, .assignment-item:last-child, .material-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  
+  .item-date {
+    font-size: 0.85rem;
+    color: #6b6b6b;
+  }
+  
+  .btn-link {
+    color: #0b6e99;
+    text-decoration: none;
+    padding: 0;
+  }
+  
+  .btn-link:hover {
+    text-decoration: underline;
+  }
+  .inline-content {
+    display: flex;
+    align-items: center;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div>
-   <!-- navigation links -->
-   <div class="container shadow-sm">
-      <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
-         <ol class="breadcrumb p-3">
-            <li class="breadcrumb-item fw-bold"><a style="color: rgb(10, 10, 48)" href="{% url 'myCourses' %}">My
-               Courses</a>
-            </li>
-            <li class="breadcrumb-item fw-bold animate__animated animate__backInRight"><a class="breadcrumb-item active"
-               aria-current="page">{{ course.title }}</a></li>
-         </ol>
-      </nav>
-   </div>
-   <!-- navigation links end -->
-   <div class="container d-flex flex-wrap flex-column">
-      <!-- course name starts -->
-      <div class="rounded p-3 m-3 shadow d-flex justify-content-between">
-         <span></span>
-         <h5 class="mt-2 fw-bold">{{course.title}}-{{course.code}}</h5>
-         <div class="dropdown">
-            <img class="dropdown-toggle" id="drop" data-bs-toggle="dropdown" aria-expanded="false" src="{% static 'images/icon/dropDown.png' %}"
-               alt="Options" height="32">
-            <ul class="dropdown-menu">
-               
-               <li class="border-bottom">
-                  <a class="dropdown-item" href="{% url 'discussion' course.code %}">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-right-dots mx-2" viewBox="0 0 16 16">
-                        <path d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
-                        <path d="M5 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-                     </svg>
-                     Discussion
-                  </a>
-               </li>
-               
-               <li>
-                  <a class="dropdown-item text-danger" href="{% url 'withdraw_course' course.code %}">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle mx-2" viewBox="0 0 16 16">
-                        <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                     </svg>
-                     Withdraw
-                  </a>
-               </li>
-               
-            </ul>
-         </div>
-      </div>
-      <!-- course name ends -->
-      <!-- announcement section starts -->
-      <div class="rounded p-3 m-3 shadow border border-top-0 border-end-0 border-bottom-0 border-primary border-5">
-         <div class="fw-bold animate__animated animate__zoomInDown fs-5 text-center border-bottom border-1 mb-2 py-2" style="color: rgb(10, 10, 48);"><img src="{% static 'images/icon/megaphone.png' %}"
-            alt="" style="height:1.5rem;vertical-align: text-top"><span style="margin-right: 0.6rem;"></span>Announcement
-         </div>
-         <div>
-            {% for announcement in announcements %}
-            <!-- individual announcement starts -->
-            <div class="fs-6" id="annDescription{{announcement.id}}">{% autoescape off %}{{announcement.description}}{% endautoescape %}</div>
-            <div class="d-flex flex-row-reverse border-bottom border-1">
-               <div style="color:grey;" class="mb-1">
-                  {{announcement.post_date}}
-               </div>
+<div class="container">
+  <div class="page-header">
+    <h1 class="course-title">{{ course.title }} ({{ course.code }})</h1>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'myCourses' %}">My Courses</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-8">
+      <!-- Announcements Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <img src="{% static 'images/icon/megaphone.png' %}" alt="" class="section-icon">
+          Announcements
+        </div>
+        <div class="section-content">
+          {% for announcement in announcements %}
+            <div class="announcement-item">
+              <div>{{ course.Instructor.name }}: {% autoescape off %}{{ announcement.description }}{% endautoescape %}</div>
+              <div class="item-date text-end">{{ announcement.post_date }}</div>
             </div>
-            <!-- individual announcement ends-->
-            {% empty %}
-            <p class="fs-6 text-center text-muted">No announcement has been posted</p>
-            {% endfor %}
-         </div>
+          {% empty %}
+            <p class="text-muted">No announcements have been posted.</p>
+          {% endfor %}
+        </div>
       </div>
-      <!-- announcement section ends -->
-      <!-- assignment section starts -->
-      <div class="rounded p-3 m-3 shadow border border-top-0 border-bottom-0 border-end-0 border-danger border-5 mb-2">
-         <div class="fw-bold fs-5 text-center animate__animated animate__zoomInDown border-bottom border-1 mb-2 py-2" style="color: rgb(10, 10, 48);"><img src="{% static 'images/icon/open-book.png' %}"
-            alt="" style="height:1.5rem; vertical-align: text-top"><span style="margin-right: 0.6rem;"></span>Assignment</div>
-         <div >
-            {% for assignment in assignments %}
-            <!-- individual assignment starts -->
-            <a class="fw-bold"
-               href="{% url 'assignmentPage' course.code assignment.id %}">{{assignment.title}}</a>
-            <div class="d-flex justify-content-between">
-               <p style="font-size:15px"> Due Date : {{ assignment.due_date}} </p>
-               <div  style="color:grey;">
-                  {{assignment.post_date}}
-               </div>
+
+      <!-- Assignments Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <img src="{% static 'images/icon/open-book.png' %}" alt="" class="section-icon">
+          Assignments
+        </div>
+        <div class="section-content">
+          {% for assignment in assignments %}
+            <div class="assignment-item">
+              <h5><a href="{% url 'assignmentPage' course.code assignment.id %}" class="btn-link">{{ assignment.title }}</a></h5>
+              <div class="d-flex justify-content-between">
+                <span>Due: {{ assignment.due_date }}</span>
+                <span class="item-date">Posted: {{ assignment.post_date }}</span>
+              </div>
             </div>
-            <!-- individual assignment ends -->
-            {% empty %}
-            <p class="text-center text-muted fs-6">No assignments given yet</p>
-            {% endfor %}
-         </div>
-         {% if assignments %}
-         <div class="text-center fs-6 text-muted d-flex flex-column border-top border-1">
-            <span class="mt-2">Showing {{ assignments.count}} of {{course.assignment_set.count}}
-            {% if assignments.count == 1 %}assignment {% else %}assignments{% endif %}
-            </span>
-            <a class="fs-6" href=" {% url 'student-assignments' course.code %} ">Show all</a>
-         </div>
-         {% endif %}
-      </div>
-      <!-- assignment section ends -->
-      <!-- course material section starts -->
-      <div class="rounded p-3 m-3 shadow border border-top-0 border-bottom-0 border-warning border-end-0 border-5" id="material">
-         <!-- section title -->
-         <div class="fw-bold animate__animated animate__zoomInDown fs-5 text-center border-bottom border-1 mb-2 py-2" style="color: rgb(10, 10, 48);"><img src="{% static 'images/icon/folder.png' %}"
-            alt="" style="height:1.5rem;vertical-align: text-top"><span style="margin-right: 0.6rem;"></span>Course Material</div>
-         <!-- section title ends -->
-         <div>
-            {% for material in materials  %}
-            <!-- individual material starts -->
-            <p>{% autoescape off %}{{ material.description }}{% endautoescape %}</p>
-            <div class="d-flex justify-content-between text-break">
-               {% if material.file %}
-               <a class="fw-bold" href="{{ material.file.url }}"><span style="color:#9400d3" id="materialName">File : {{material.file.name}}</span></a><br>
-               {% endif %}
-               <div class="text-muted">
-                  {{material.post_date}}
-               </div>
+          {% empty %}
+            <p class="text-muted">No assignments have been given yet.</p>
+          {% endfor %}
+          {% if assignments %}
+            <div class="text-center mt-3">
+              <p class="text-muted">Showing {{ assignments.count }} of {{ course.assignment_set.count }} assignments</p>
+              <a href="{% url 'student-assignments' course.code %}" class="btn-link">Show all assignments</a>
             </div>
-            {% empty %}
-            <p class="text-center text-muted fs-6">Course materials not available</p>
-            {% endfor %}
-            <!-- individual material ends -->
-         </div>
+          {% endif %}
+        </div>
       </div>
-      <!-- course material section ends -->
-   </div>
+
+      <!-- Course Materials Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <img src="{% static 'images/icon/folder.png' %}" alt="" class="section-icon">
+          Course Materials
+        </div>
+        <div class="section-content">
+          {% for material in materials %}
+            <div class="material-item">
+              <div>{% autoescape off %}{{ material.description }}{% endautoescape %}</div>
+              {% if material.file %}
+                <a href="{{ material.file.url }}" class="btn-link">{{ material.file.name|cut:"materials/" }}</a>
+              {% endif %}
+              <div class="item-date text-end">{{ material.post_date }}</div>
+            </div>
+          {% empty %}
+            <p class="text-muted">No course materials are available.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <!-- Course Actions -->
+      <div class="section-card">
+        <div class="section-header">
+          Course Actions
+        </div>
+        <div class="section-content">
+          <a href="{% url 'discussion' course.code %}" class="btn btn-outline-primary w-100 mb-2">
+            <i class="bi bi-chat-right-dots"></i> Discussion
+          </a>
+          <a href="{% url 'withdraw_course' course.code %}" class="btn btn-outline-danger w-100">
+            <i class="bi bi-x-circle"></i> Withdraw from Course
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-   var materialName = document.getElementById("materialName").innerHTML;
-   var materialName = materialName.replace("materials/", "");
-   document.getElementById("materialName").innerHTML = materialName;
+  $(document).ready(function() {
+    // Fade in section cards
+    $('.section-card').each(function(index) {
+      $(this).delay(100 * index).animate({opacity: 1}, 500);
+    });
+
+    // Smooth scroll for breadcrumb links
+    $('.breadcrumb-item a').click(function(e) {
+      e.preventDefault();
+      var target = $(this).attr('href');
+      $('html, body').animate({
+        scrollTop: $(target).offset().top
+      }, 500);
+    });
+
+    // Toggle announcement descriptions
+    $('.announcement-item').each(function() {
+      var $description = $(this).find('div:first');
+      var fullText = $description.html();
+      var shortText = fullText.slice(0, 200) + '...';
+      
+      if (fullText.length > 200) {
+        $description.html(shortText);
+        $description.append('<a href="#" class="read-more">Read more</a>');
+        
+        $(this).on('click', '.read-more', function(e) {
+          e.preventDefault();
+          if ($description.html().indexOf('Read more') !== -1) {
+            $description.html(fullText + ' <a href="#" class="read-more">Read less</a>');
+          } else {
+            $description.html(shortText + ' <a href="#" class="read-more">Read more</a>');
+          }
+        });
+      }
+    });
+  });
 </script>
 {% endblock %}

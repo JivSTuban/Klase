@@ -8,7 +8,7 @@ class CourseForm(forms.ModelForm):
         fields = ['code', 'description', 'title', 'studentKey', 'InstructorKey']
         widgets = {
             'code': forms.NumberInput(attrs={'class': 'form-control', 'disabled': 'disabled'}),
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'maxlength': '50'}),
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'studentKey': forms.NumberInput(attrs={'class': 'form-control'}),
             'InstructorKey': forms.NumberInput(attrs={'class': 'form-control'}),

@@ -14,10 +14,10 @@ class Student(models.Model):
     course = models.ManyToManyField(
         'Course', related_name='students', blank=True)
     photo = models.ImageField(upload_to='profile_pics', blank=True,
-                              null=False, default='profile_pics/default_student.png')
+                              null=False, default='profile_pics/default_student.webp')
 
     def delete(self, *args, **kwargs):
-        if self.photo != 'profile_pics/default_student.png':
+        if self.photo != 'profile_pics/default_student.webp':
             self.photo.delete()
         super().delete(*args, **kwargs)
 

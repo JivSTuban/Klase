@@ -5,11 +5,6 @@ from main.models import Student, Instructor, Course
 from main.views import is_instructor_authorised, is_student_authorised
 from itertools import chain
 
-# Create your views here.
-
-
-''' We have two different user models.
-    That's why we are filtering the discussions based on the user type and then combining them.'''
 
 
 def context_list(course):
@@ -77,13 +72,13 @@ def send(request, code, email):
         return render(request, 'error.html')
 
 
-def send_fac(request, code, fac_id):
+def send_fac(request, code, email):
     if is_instructor_authorised(request, code):
         if request.method == 'POST':
             content = request.POST['content']
             course = Course.objects.get(code=code)
             try:
-                instructor = Instructor.objects.get(faculty_id=fac_id)
+                instructor = Instructor.objects.get(email=email)
                 InstructorDiscussion.objects.create(
                     content=content,
                     course=course,

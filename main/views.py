@@ -29,7 +29,7 @@ def is_student_authorised(request, code):
         return False
 
 def is_instructor_authorised(request, code):
-    if request.session.get('instructor_email') and code in Course.objects.filter(Instructor__email=request.session['instructor_email']).values_list('code', flat=True):
+    if request.session.get('instructor_email') and code in Course.objects.filter(Instructor_id=request.session['instructor_id']).values_list('code', flat=True):
         return True
     else:
         return False
@@ -262,6 +262,7 @@ def profile(request, email):
 
 def addAnnouncement(request, code):
     if is_instructor_authorised(request, code):
+        print('passed')
         if request.method == 'POST':
             form = AnnouncementForm(request.POST)
             form.instance.course_code = Course.objects.get(code=code)
@@ -686,7 +687,8 @@ def search(request):
             courses = Course.objects.filter(
                 Q(code__icontains=q) | 
                 Q(title__icontains=q) | 
-                Q(Instructor__name__icontains=q)  # Correct field name
+                Q(Instructor__name__icontains=q) | # Correct field name
+                Q(description__icontains=q) 
             )
 
             student = None
